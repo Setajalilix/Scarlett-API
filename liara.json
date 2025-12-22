@@ -1,8 +1,10 @@
 {
-  "app": "scarlett-api",
-  "port": 3000,
-  "build": {
-    "location": "iran"
-  },
-  "disks": []
+    "app": "scarlett-api",
+    "port": 3000,
+    "platform": "php",
+    "phpVersion": "8.3",
+    "build": {
+        "location": "iran"
+    },
+    "disks": []
 }
