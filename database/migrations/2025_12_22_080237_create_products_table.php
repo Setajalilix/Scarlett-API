@@ -16,6 +16,7 @@ return new class extends Migration {
             $table->string('image', 255)->nullable();
             $table->text('description', 255)->nullable();
             $table->decimal('price', 15, 0)->default(0);
+            $table->unsignedInteger('qty')->default(0);
             $table->timestamps();
         });
     }
