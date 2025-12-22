@@ -1,7 +1,10 @@
 {
     "app": "scarlett-api",
+    "port": 3000,
     "platform": "php",
-    "phpVersion": "8.4",
+    "laravel": {
+        "phpVersion": "8.4"
+    },
     "build": {
         "location": "iran"
     }
