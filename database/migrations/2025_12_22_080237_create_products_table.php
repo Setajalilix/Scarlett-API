@@ -17,6 +17,8 @@ return new class extends Migration {
             $table->text('description', 255)->nullable();
             $table->decimal('price', 15, 0)->default(0);
             $table->unsignedInteger('qty')->default(0);
+            $table->foreignId('category_id')->constrained('categories')->onDelete('cascade');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

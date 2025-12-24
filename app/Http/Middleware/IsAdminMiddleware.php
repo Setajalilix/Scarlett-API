@@ -16,10 +16,11 @@ class IsAdminMiddleware
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (Auth::user()->role == 'admin') {
+
+        if (Auth::check() and Auth::user()->role == 'admin') {
 
             return $next($request);
         }
-        return response('Unauthorized.', 401);
+        return response()->json(['error' => 'Unauthorized.'], 401);
     }
 }

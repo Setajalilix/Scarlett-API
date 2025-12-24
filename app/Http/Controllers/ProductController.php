@@ -2,28 +2,38 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdminMiddleware;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\HasMiddleware;
 
-class ProductController extends Controller
+class ProductController extends Controller implements HasMiddleware
 {
-    public function __construct()
+
+    public static function middleware(): array
     {
-        $this->middleware(['isAdmin'], ['except' => ['index', 'show']]);
+        return [
+            new Middleware(IsAdminMiddleware::class, except: ['index', 'show']),
+        ];
     }
 
     public function index()
     {
         $products = Product::all();
-        return new ProductResource($products);
+        return ProductResource::collection($products);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => 'required',
-            'price' => 'required',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'qty' => 'nullable|numeric|min:0',
+            'category_id' => 'required|integer|exists:categories,id',
 
         ]);
         Product::create($data);
@@ -40,8 +50,11 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         $data = $request->validate([
-            'name' => 'required',
-            'price' => 'required',
+            'name' => 'required|string|max:255',
+            'price' => 'required|numeric|min:0',
+            'description' => 'nullable|string|max:255',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'qty' => 'nullable|numeric|min:0',
         ]);
         $product->update($data);
         return response()->json([
