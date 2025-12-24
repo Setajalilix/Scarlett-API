@@ -1,7 +1,7 @@
 {
     "app": "scarlett-api",
     "port": 3000,
-    "platform": "php",
+    "platform": "laravel",
     "laravel": {
         "phpVersion": "8.4"
     },
