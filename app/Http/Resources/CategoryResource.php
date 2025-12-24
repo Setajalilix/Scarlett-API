@@ -20,7 +20,8 @@ class CategoryResource extends JsonResource
             'created_at' => [
                 'at' => $this->created_at->format('Y/m/d'),
                 'human' => $this->created_at->diffForHumans(),
-            ]
+            ],
+            'products' => ProductResource::collection($this->whenLoaded('products')),
         ];
     }
 }

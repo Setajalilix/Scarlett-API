@@ -2,42 +2,76 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Middleware\IsAdminMiddleware;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function __construct()
+    public static function middleware(): array
     {
-        $this->middleware(['isAdmin'], ['only' => ['changeStatus']]);
+        return [
+            new Middleware(IsAdminMiddleware::class, only: ['changeStatus', 'index']),
+        ];
     }
 
     public function index()
     {
-        $orders = Order::all();
+        $orders = Order::with(['product', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->groupBy('order_number');
         return OrderResource::collection($orders);
     }
 
     public function changeStatus(Request $request, Order $order)
     {
+        // if status == completed can not change it again
+        if ($order->status == 'completed' or $order->status == 'cancelled') {
+            return response()->json([
+                'message' => 'This order is already completed or cancelled',
+            ], 403);
+        }
         $request->validate([
-            'status' => 'required'
+            'status' => 'required|in:pending,processing,completed',
         ]);
+        if ($request->status == 'completed')
+            $delivery_at = now();
+
         $order->update([
-            'status' => $request->status
+            'status' => $request->status,
+            'delivery_at' => $delivery_at ?? null
         ]);
         return response()->json([
             'message' => 'Order status updated'
         ]);
     }
 
+    public function cancelOrder(Order $order)
+    {
+        if ($order->status == 'completed' or $order->status == 'cancelled') {
+            return response()->json([
+                'message' => 'This order is already completed or cancelled',
+            ], 403);
+        }
+        $order->update([
+            'status' => 'cancelled'
+        ]);
+        return response()->json([
+            'message' => 'Order cancelled'
+        ]);
+    }
+
     public function store(Request $request)
     {
         $request->validate([
-            'items' => 'required|array'
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|integer',
+            'items.*.count' => 'required|integer',
         ]);
 
         $user = auth()->user();
@@ -100,18 +134,19 @@ class OrderController extends Controller
 
         return response()->json([
             'status' => true,
-            'orders' => $orders
+            'orders' => OrderResource::collection($orders)
         ]);
     }
 
-    public function show($orderNumber)
+    public function show(Order $order)
     {
-        $orders = Order::where('order_number', $orderNumber)
+
+        $orders = Order::where('order_number', $order->order_number)
             ->where('user_id', auth()->id())
             ->with('product')
             ->get();
 
-        if ($orders->isEmpty()) {
+        if (!$orders) {
             return response()->json([
                 'status' => false,
                 'message' => 'سفارش یافت نشد'
@@ -120,9 +155,7 @@ class OrderController extends Controller
 
         return response()->json([
             'status' => true,
-            'order_number' => $orderNumber,
-            'items' => $orders,
-            'total_price' => $orders->sum('total')
+            'items' => new OrderResource($orders),
         ]);
     }
 }

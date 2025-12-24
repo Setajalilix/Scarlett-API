@@ -18,10 +18,12 @@ Route::post('/tokens/create', function (Request $request) {
 //Route::middleware('auth:sanctum')->group(function () {
 Route::apiResource('products', ProductController::class);
 Route::apiResource('categories', CategoryController::class);
-Route::post('orders', [OrderController::class, 'store']);
-Route::get('my-orders', [OrderController::class, 'myOrders']);
-Route::get('orders/{orderNumber}', [OrderController::class, 'show']);
+Route::get('categories/{category}/products', [CategoryController::class, 'showProducts']);
 
-Route::post('orders/{orderNumber}/status', [OrderController::class, 'changeStatus']);
+Route::apiResource('orders', OrderController::class)->except(['update', 'destroy']);
+Route::get('my-orders', [OrderController::class, 'myOrders']);
+
+Route::post('orders/{order}/status', [OrderController::class, 'changeStatus']);
+Route::post('orders/{order}/cancel', [OrderController::class, 'cancelOrder']);
 //});
 

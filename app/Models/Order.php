@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Order extends Model
 {
@@ -17,9 +18,11 @@ class Order extends Model
         'status',
         'discount',
         'order_number',
+        'delivery_at',
     ];
 
-    public function products()
+
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
@@ -27,5 +30,10 @@ class Order extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'order_number';
     }
 }
