@@ -5,13 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Middleware\IsAdminMiddleware;
 use App\Http\Resources\ProductResource;
 use App\Models\Product;
+use App\Services\ImageService;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 
 class ProductController extends Controller implements HasMiddleware
 {
-
     public static function middleware(): array
     {
         return [
@@ -22,6 +22,7 @@ class ProductController extends Controller implements HasMiddleware
     public function index()
     {
         $products = Product::all();
+
         return ProductResource::collection($products);
     }
 
@@ -36,6 +37,8 @@ class ProductController extends Controller implements HasMiddleware
             'category_id' => 'required|integer|exists:categories,id',
 
         ]);
+        $imgService = new ImageService();
+        $data['image'] = $imgService->upload($request->file('image'), $request->name);
         Product::create($data);
         return response()->json([
             'message' => 'Product created successfully'
@@ -56,6 +59,11 @@ class ProductController extends Controller implements HasMiddleware
             'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
             'qty' => 'nullable|numeric|min:0',
         ]);
+        if ($request->hasFile('image')) {
+            $imgService = new ImageService();
+            $imgService->delete($product->image);
+            $data['image'] = $imgService->upload($request->file('image'), $request->name);
+        }
         $product->update($data);
         return response()->json([
             'message' => 'Product updated successfully'
