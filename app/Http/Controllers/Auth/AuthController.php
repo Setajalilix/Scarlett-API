@@ -31,10 +31,10 @@ class AuthController extends Controller
     {
         $data = $request->validate([
             'username' => 'required|string|unique:users',
-            'phone' => 'nullable|string|unique:users',
+            'phone' => 'nullable|string|digits:11',
             'gender' => 'required|string|in:male,female',
             'password' => 'required|string|min:4',
-            'avatar' => 'nullable|mimes:jpeg,jpg,png|image|max:2048'
+            'address' => 'nullable|string'
         ]);
         $user = User::create($data);
         return response()->json([
