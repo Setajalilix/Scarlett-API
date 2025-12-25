@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Events\MessageSent;
+use App\Http\Middleware\IsAdminMiddleware;
 use App\Http\Resources\MessageResource;
+use App\Http\Resources\UserResource;
 use App\Models\Message;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Controllers\Middleware;
 
 class MessageController extends Controller
 {
@@ -59,4 +62,29 @@ class MessageController extends Controller
         return MessageResource::collection($messages);
     }
 
+    public function chats()
+    {
+        $me = auth()->user();
+
+        $userIds = Message::where('sender_id', $me->id)
+            ->orWhere('receiver_id', $me->id)
+            ->get()
+            ->flatMap(function ($message) use ($me) {
+                return [
+                    $message->sender_id === $me->id
+                        ? $message->receiver_id
+                        : $message->sender_id
+                ];
+            })
+            ->unique()
+            ->values();
+
+        $users = User::whereIn('id', $userIds)
+            ->select('id', 'username', 'role')
+            ->get();
+
+        return response()->json([
+            'users' => $users
+        ]);
+    }
 }

@@ -18,6 +18,7 @@ Route::post('/tokens/create', function (Request $request) {
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('chat/send', [MessageController::class, 'send']);
     Route::get('chat/{userId}', [MessageController::class, 'history']);
+    Route::get('chats', [MessageController::class, 'chats']);
 
     Route::apiResource('products', ProductController::class);
     Route::apiResource('categories', CategoryController::class);
